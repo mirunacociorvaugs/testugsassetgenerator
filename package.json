@@ -1,6 +1,6 @@
 {
   "name": "test-ugs-asset-gen-a",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Automates PWA asset generation and image declaration. Automatically generates icon and splash screen images, favicons and mstile images. Updates manifest.json and index.html files with the generated images according to Web App Manifest specs and Apple Human Interface guidelines.",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -57,7 +57,7 @@
   "bugs": {
     "url": "https://github.com/ultra-grup/pwa-asset-generator"
   },
-  "homepage": "https://github.com/ultra-grup/pwa-asset-generator", 
+  "homepage": "https://github.com/ultra-grup/pwa-asset-generator",
   "dependencies": {
     "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",
