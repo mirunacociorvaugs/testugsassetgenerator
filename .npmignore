@@ -1,0 +1,41 @@
+# Editors
+.idea
+
+# Generated files
+static/*
+temp/*
+__snapshots__/*
+*.tgz
+coverage/*
+
+# Source files
+*.test.js
+src/*
+dist/models/*.js
+!dist/models/meta.js
+bin/install
+bin/update-fallback-data
+
+# Declaration files
+*.d.ts
+!dist/main.d.ts
+!dist/models/*.d.ts
+
+# Config files
+.github
+commitlint.config.js
+jest.config.js
+jest.setup.js
+tsconfig.json
+.editorconfig
+.eslintrc
+.gitattributes
+.gitignore
+.npmrc
+.prettierrc
+.travis.yml
+.releaserc
+
+# Documentation
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
