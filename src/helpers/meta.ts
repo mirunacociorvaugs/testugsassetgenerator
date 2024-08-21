@@ -1,4 +1,3 @@
-import {load} from 'cheerio';
 import pretty from 'pretty';
 import { lookup } from 'mime-types';
 import path from 'path';
@@ -202,7 +201,7 @@ const addIconsToManifest = async (
   }
 
   const manifestJson = JSON.parse(
-    (await file.readFile(manifestJsonFilePath)) as unknown as string,
+    (await file.readFile(manifestJsonFilePath)).toString(),
   );
 
   const newManifestContent = {
@@ -249,52 +248,42 @@ const addMetaTagsToIndexPage = async (
     throw Error(`Cannot write to index html file ${indexHtmlFilePath}`);
   }
 
-  const indexHtmlFile = await file.readFile(indexHtmlFilePath);
-  const $ = load(indexHtmlFile, {
-    decodeEntities: false,
-    xmlMode: xhtml,
-  });
+  let indexHtmlFile = (await file.readFile(indexHtmlFilePath)).toString();
 
-  const HEAD_SELECTOR = 'head';
-  const hasElement = (selector: string): boolean => {
-    return $(selector).length > 0;
-  };
+  const escapeSpecialChars = (selector: string): string =>
+    selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  const hasDarkModeElement = (): boolean => {
-    const darkModeMeta = constants.HTML_META_ORDERED_SELECTOR_LIST.find(
-      (m: HTMLMetaSelector) =>
-        m.name === HTMLMetaNames.appleLaunchImageDarkMode,
-    );
-    if (darkModeMeta) {
-      return $(darkModeMeta.selector).length > 0;
-    }
-    return false;
-  };
+  constants.HTML_META_ORDERED_SELECTOR_LIST.forEach(
+    (meta: HTMLMetaSelector) => {
+      const escapedSelector = escapeSpecialChars(meta.selector);
+      const regex = new RegExp(`<meta[^>]*${escapedSelector}[^>]*>`, 'g');
+      indexHtmlFile = indexHtmlFile.replace(regex, '');
+    },
+  );
 
-  // TODO: Find a way to remove tags without leaving newlines behind
+  // Add new meta tags
+  let headIndex = indexHtmlFile.indexOf('<head>');
+  if (headIndex === -1) throw new Error('<head> tag not found in HTML file');
+  headIndex += 6; // Move past the '<head>' tag
+
+  let newMetaTags = '';
   constants.HTML_META_ORDERED_SELECTOR_LIST.forEach(
     (meta: HTMLMetaSelector) => {
       if (htmlMeta.hasOwnProperty(meta.name) && htmlMeta[meta.name] !== '') {
-        const content = `${htmlMeta[meta.name]}`;
-
-        if (hasElement(meta.selector)) {
-          $(meta.selector).remove();
-        }
-
-        // Because meta tags with dark mode media attr has to be declared after the regular splash screen meta tags
-        if (
-          meta.name === HTMLMetaNames.appleLaunchImage &&
-          hasDarkModeElement()
-        ) {
-          $(HEAD_SELECTOR).prepend(`\n${content}`);
-        } else {
-          $(HEAD_SELECTOR).append(`${content}\n`);
-        }
+        newMetaTags += `${htmlMeta[meta.name]}\n`;
       }
     },
   );
 
-  return file.writeFile(indexHtmlFilePath, pretty($.html(), { ocd: true }));
+  const updatedHtml = `${indexHtmlFile.slice(
+    0,
+    headIndex,
+  )}\n${newMetaTags}${indexHtmlFile.slice(headIndex)}`;
+
+  // Format the updated HTML using pretty
+  const formattedHtml = pretty(updatedHtml, { ocd: true });
+
+  return file.writeFile(indexHtmlFilePath, formattedHtml);
 };
 
 export default {
